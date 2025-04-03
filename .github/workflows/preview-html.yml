@@ -22,15 +22,16 @@ jobs:
           echo "deb https://ngrok-agent.s3.amazonaws.com buster main" | sudo tee /etc/apt/sources.list.d/ngrok.list
           sudo apt update && sudo apt install -y ngrok
 
-      - name: Launch ngrok tunnel
+      - name: Start ngrok tunnel
         run: |
           ngrok config add-authtoken "${{ secrets.NGROK_AUTH_TOKEN }}"
           ngrok http 8000 > ngrok.log &
-          sleep 120
+          sleep 10
           curl http://127.0.0.1:4040/api/tunnels > tunnels.json
-          cat tunnels.json
-
-      - name: Extract public URL
-        run: |
           PUBLIC_URL=$(jq -r '.tunnels[0].public_url' < tunnels.json)
-          echo "🌍 Ton site est accessible ici : $PUBLIC_URL"
+          echo "::notice title=🌍 Public URL::$PUBLIC_URL"
+
+      - name: Keep tunnel alive for testing
+        run: |
+          echo "Sleeping for 120 seconds so you can test the site..."
+          sleep 120
